@@ -1,23 +1,36 @@
 import logger from '../utils/logger';
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+}
+
+interface UserDTO {
+  id: number;
+  username: string;
+}
+
 export class UserService {
+  // TODO: 仮のデータ、データベースから取得したい。
   private users = [
     { id: 1, username: 'user1', email: 'user1@example.com' },
     { id: 2, username: 'user2', email: 'user2@example.com' },
   ];
 
-  getAllUsers(limit?: number, offset?: number) {
+  getAllUsers(options: { limit?: number; offset?: number } = {}): UserDTO[] {
+    const { limit, offset } = options;
     logger.info('Fetching all users', { limit, offset });
-    let result = this.users.map(u => ({ id: u.id, username: u.username }));
-    
-    if (offset !== undefined) {
-      result = result.slice(offset);
-    }
-    if (limit !== undefined) {
-      result = result.slice(0, limit);
-    }
-    
-    return result;
+
+    return this.users
+      .map(this.mapToDTO)
+      .slice(offset || 0, limit ? (offset || 0) + limit : undefined);
+  }
+
+  getUser(userId: number): UserDTO | undefined {
+    logger.info('Fetching user', { userId });
+    const user = this.users.find(u => u.id === userId);
+    return user ? this.mapToDTO(user) : undefined;
   }
 
   updateUser(userId: number, username?: string, email?: string) {
@@ -34,5 +47,9 @@ export class UserService {
     }
     logger.warn('User not found for update', { requestedId: userId });
     return false;
+  }
+
+  private mapToDTO(user: User): UserDTO {
+    return { id: user.id, username: user.username };
   }
 }

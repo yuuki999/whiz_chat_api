@@ -12,6 +12,8 @@ import { Router, Request, Response, NextFunction } from 'express';
  *
  */
 
+// memo: 使わなくてもいいかも様子見
+
 export class CustomRouter {
   private router: Router;
 

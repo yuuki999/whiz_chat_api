@@ -1,7 +1,13 @@
 import { Get, Patch, Path, Route, Tags, Query, Body } from "tsoa";
 import { UserService } from '../services/userService';
+import { ResourceNotFoundException } from "../exception/ResourceNotFoundException";
 
 interface User {
+  id: number;
+  username: string;
+}
+
+interface UserDTO {
   id: number;
   username: string;
 }
@@ -21,8 +27,16 @@ export class UserController {
   }
 
   @Get()
-  async getUsers(@Query() limit?: number, @Query() offset?: number): Promise<User[]> {
-    return this.userService.getAllUsers(limit, offset);
+  async getUsers(
+    @Query('limit') limit?: number, 
+    @Query('offset') offset?: number
+  ): Promise<UserDTO[]> {
+    const options = {
+      limit: limit ? limit : undefined,
+      offset: offset ? offset : undefined
+    };
+
+    return this.userService.getAllUsers(options);
   }
 
   @Get("{userId}")
@@ -30,7 +44,7 @@ export class UserController {
     const users = this.userService.getAllUsers();
     const user = users.find(u => u.id === userId);
     if (!user) {
-      throw new Error("User not found");
+      throw new ResourceNotFoundException("ユーザーが見つかりません");
     }
     return user;
   }

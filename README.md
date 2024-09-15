@@ -95,3 +95,125 @@ TSOAの詳細な使用方法については、[公式ドキュメント](https:/
 
 TODO:
 github actionで```pnpm run tsoa```を実行するようにする。
+
+
+# エラーハンドリング戦略
+
+## 基本原則
+
+1. エラーは発生源に近い場所で捕捉し、適切な例外に変換する。
+2. ビジネスロジックは、意味のある情報を持つカスタム例外をスローする。
+3. ルーティング層では、グローバルなエラーハンドリングのみを行う。
+4. すべての未処理の例外は、統一されたフォーマットでクライアントに返す。
+
+## レイヤー別の責任
+
+### 1. サービス層
+
+- データアクセスやビジネスロジックに関連するエラーを捕捉する。
+- 適切なカスタム例外に変換する。
+
+例：
+```typescript
+class UserService {
+  getUser(userId: number): User {
+    const user = this.userRepository.findById(userId);
+    if (!user) {
+      throw new ResourceNotFoundException(`User with id ${userId} not found`);
+    }
+    return user;
+  }
+}
+```
+
+### 2. コントローラー層
+
+- サービス層から受け取った例外を処理せず、そのまま上位層に伝播させる。
+
+例：
+```typescript
+class UserController {
+  async getUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await this.userService.getUser(req.params.userId);
+      res.json(user);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+```
+
+### 3. ルーティング層
+
+- グローバルエラーハンドラーを使用し、全ての未処理の例外を捕捉する。
+- 適切なHTTPステータスコードとエラーメッセージを含むレスポンスを生成する。
+
+例：
+```typescript
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  logger.error('Unhandled error:', err);
+  
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({
+      statusCode: err.statusCode,
+      errorCode: err.errorCode,
+      message: err.message
+    });
+  } else {
+    res.status(500).json({
+      statusCode: 500,
+      errorCode: 'INTERNAL_SERVER_ERROR',
+      message: 'An unexpected error occurred'
+    });
+  }
+});
+```
+
+## カスタム例外
+
+プロジェクト固有の例外を定義し、使用してください。以下は基本的な例外クラスの例です：
+
+```typescript
+export class AppError extends Error {
+  constructor(
+    public statusCode: number,
+    public errorCode: string,
+    message: string
+  ) {
+    super(message);
+  }
+}
+
+export class ResourceNotFoundException extends AppError {
+  constructor(message: string) {
+    super(404, 'RESOURCE_NOT_FOUND', message);
+  }
+}
+
+export class ValidationError extends AppError {
+  constructor(message: string) {
+    super(400, 'VALIDATION_ERROR', message);
+  }
+}
+```
+
+## ベストプラクティス
+
+1. 常に適切なカスタム例外を使用し、一般的な `Error` オブジェクトの使用は避ける。
+2. エラーメッセージは具体的かつ有用なものにする。
+3. 本番環境ではスタックトレースを含めない。
+4. すべてのエラーを適切にログに記録する。
+5. 入力バリデーションは可能な限り早い段階で行う。
+
+## エラーレスポンスの形式
+
+一貫性のあるエラーレスポンス形式を使用します：
+
+```json
+{
+  "statusCode": 404,
+  "errorCode": "RESOURCE_NOT_FOUND",
+  "message": "User with id 123 not found"
+}
+```
