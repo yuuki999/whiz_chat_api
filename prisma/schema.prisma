@@ -7,11 +7,155 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// モデルの定義を追加
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id              Int       @id @default(autoincrement())
+  userId          String    @unique
+  passwordHash    String
+  name            String
+  email           String    @unique
+  phoneNumber     String?
+  statusMessage   String?
+  profileImageUrl String?
+  isAdmin         Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  lastLogin       DateTime?
+  faceIdEnabled   Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  sentMessages     Message[]  @relation("SentMessages")
+  receivedMessages Message[]  @relation("ReceivedMessages")
+  createdGroups    Group[]    @relation("CreatedGroups")
+  groupMemberships GroupMember[]
+  updatedSettings  Setting[]
+  userSettings     UserSetting[]
+  notifications    Notification[]
+  createdGeoFences GeoFence[]
+  
+  callerLogs       CallLog[]  @relation("CallerLogs")
+  receiverLogs     CallLog[]  @relation("ReceiverLogs")
+  
+  auditLogs        AuditLog[]
 }
 
-// TODO: 他のモデルも必要に応じて追加
+model Message {
+  id                Int      @id @default(autoincrement())
+  senderId          Int
+  receiverId        Int?
+  groupId           Int?
+  content           String
+  contentType       String
+  isEncrypted       Boolean  @default(true)
+  isRead            Boolean  @default(false)
+  readAt            DateTime?
+  deletedForSender  Boolean  @default(false)
+  deletedForReceiver Boolean @default(false)
+  createdAt         DateTime @default(now())
+
+  sender   User  @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User? @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  group    Group? @relation(fields: [groupId], references: [id])
+}
+
+model Group {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdById Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User          @relation("CreatedGroups", fields: [createdById], references: [id])
+  members     GroupMember[]
+  messages    Message[]
+}
+
+model GroupMember {
+  groupId   Int
+  userId    Int
+  role      String   @default("member")
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+
+  group     Group    @relation(fields: [groupId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@id([groupId, userId])
+}
+
+model Setting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String?
+  description String?
+  isEditable  Boolean  @default(true)
+  updatedById Int?
+  updatedAt   DateTime @updatedAt
+
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+}
+
+model UserSetting {
+  userId      Int
+  settingKey  String
+  value       String?
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@id([userId, settingKey])
+}
+
+model Notification {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  content          String
+  notificationType String
+  isRead           Boolean  @default(false)
+  readAt           DateTime?
+  createdAt        DateTime @default(now())
+
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model GeoFence {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  latitude    Decimal  @db.Decimal(10, 8)
+  longitude   Decimal  @db.Decimal(11, 8)
+  radius      Decimal  @db.Decimal(10, 2)
+  isAllowed   Boolean
+  createdById Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User     @relation(fields: [createdById], references: [id])
+}
+
+model CallLog {
+  id         Int      @id @default(autoincrement())
+  callerId   Int
+  receiverId Int
+  startTime  DateTime
+  endTime    DateTime?
+  duration   Int?
+  callType   String
+  status     String
+  createdAt  DateTime @default(now())
+
+  caller     User     @relation("CallerLogs", fields: [callerId], references: [id])
+  receiver   User     @relation("ReceiverLogs", fields: [receiverId], references: [id])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  action     String
+  details    String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+}
