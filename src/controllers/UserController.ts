@@ -1,30 +1,47 @@
-import { Controller, Get, Path, Route, Tags } from "tsoa";
+import { Get, Patch, Path, Route, Tags, Query, Body } from "tsoa";
+import { UserService } from '../services/userService';
 
 interface User {
   id: number;
-  name: string;
-  email: string;
+  username: string;
+}
+
+interface UpdateUserRequest {
+  username?: string;
+  email?: string;
 }
 
 @Route("users")
 @Tags("User")
-export class UserController extends Controller {
-  @Get("{userId}")
-  public async getUser(@Path() userId: number): Promise<User> {
-    // ここで実際のユーザー取得ロジックを実装
-    return {
-      id: userId,
-      name: "John Doe",
-      email: "john@example.com"
-    };
+export class UserController {
+  private userService: UserService;
+
+  constructor() {
+    this.userService = new UserService();
   }
 
   @Get()
-  public async getUsers(): Promise<User[]> {
-    // ここで実際のユーザー一覧取得ロジックを実装
-    return [
-      { id: 1, name: "John Doe", email: "john@example.com" },
-      { id: 2, name: "Jane Doe", email: "jane@example.com" }
-    ];
+  async getUsers(@Query() limit?: number, @Query() offset?: number): Promise<User[]> {
+    return this.userService.getAllUsers(limit, offset);
+  }
+
+  @Get("{userId}")
+  async getUser(@Path() userId: number): Promise<User> {
+    const users = this.userService.getAllUsers();
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
+  }
+
+  @Patch("{userId}")
+  async updateUser(@Path() userId: number, @Body() requestBody: UpdateUserRequest): Promise<{ message: string }> {
+    const success = await this.userService.updateUser(userId, requestBody.username, requestBody.email);
+    if (success) {
+      return { message: 'User updated successfully' };
+    } else {
+      throw new Error('User not found');
+    }
   }
 }
