@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://user:password@db:5432/mydb
+      DATABASE_URL: postgresql://user:password@db:5432/whiz_chat
     volumes:
       - ./:/app
       - /app/node_modules
@@ -23,7 +23,7 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+      POSTGRES_DB: whiz_chat
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
