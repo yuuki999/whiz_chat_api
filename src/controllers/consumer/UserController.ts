@@ -1,6 +1,6 @@
 import { Get, Patch, Path, Route, Tags, Query, Body } from "tsoa";
-import { UserService } from '../services/userService';
-import { ResourceNotFoundException } from "../exception/ResourceNotFoundException";
+import { UserService } from '../../services/userService';
+import { ResourceNotFoundException } from "../../exception/ResourceNotFoundException";
 
 interface User {
   id: number;

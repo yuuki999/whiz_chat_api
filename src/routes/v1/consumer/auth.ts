@@ -1,48 +1,75 @@
-// import express, { Request, Response, NextFunction } from 'express';
-// import jwt from 'jsonwebtoken';
-// import logger from '../../../utils/logger';
+import { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import { body } from 'express-validator';
+import { validateRequest } from '../../../middleware/validateRequest';
+import { ConsumerAuthService } from '../../../services/consumer/authService';
+import { ConsumerAuthController } from '../../../controllers/consumer/ConsumerAuthController';
 
-// const router = express.Router();
+const router = express.Router();
+const authService = new ConsumerAuthService();
+const authController = new ConsumerAuthController(authService);
 
-// // 仮のユーザーデータ（実際にはデータベースを使用します）
-// const users = [
-//   { id: 1, username: 'user1', password: 'password1' },
-//   { id: 2, username: 'user2', password: 'password2' },
-// ];
+router.post('/register',
+  [
+    body('email').isEmail().withMessage('有効なメールアドレスを指定してください'),
+    body('password').isLength({ min: 8 }).withMessage('パスワードは8文字以上で指定してください'),
+    body('name').isString().trim().notEmpty().withMessage('名前は空でない文字列を指定してください'),
+    body('age').optional().isInt({ min: 0 }).withMessage('年齢は0以上の整数を指定してください')
+  ],
+  validateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await authController.register(req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
-// // ログインエンドポイント
-// router.post('/login', (req: Request, res: Response) => {
-//   const { username, password } = req.body;
-//   const user = users.find(u => u.username === username && u.password === password);
+router.post('/login',
+  [
+    body('email').isEmail().withMessage('有効なメールアドレスを指定してください'),
+    body('password').isString().notEmpty().withMessage('パスワードを指定してください')
+  ],
+  validateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, password } = req.body;
+      const result = await authController.login(req.body);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
-//   if (user) {
-//     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '1h' });
-//     logger.info('User logged in', { userId: user.id, username: user.username });
-//     res.json({ token });
-//   } else {
-//     logger.warn('Login attempt failed', { username });
-//     res.status(401).json({ error: 'Invalid credentials' });
-//   }
-// });
+router.post('/logout',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // ここでは、クライアントサイドでトークンを削除する想定のため、
+      // サーバーサイドでの特別な処理は行わず、成功レスポンスを返します
+      res.json({ message: 'ログアウトしました' });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
-// // トークン検証ミドルウェア
-// export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-//   const authHeader = req.headers['authorization'];
-//   const token = authHeader && authHeader.split(' ')[1];
+router.post('/refresh-token',
+  [
+    body('refreshToken').isString().notEmpty().withMessage('リフレッシュトークンを指定してください')
+  ],
+  validateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.body;
+      const result = await authController.refreshToken(refreshToken);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
-//   if (token == null) {
-//     logger.warn('Authentication failed: No token provided');
-//     return res.sendStatus(401);
-//   }
-
-//   jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
-//     if (err) {
-//       logger.warn('Authentication failed: Invalid token', { error: err.message });
-//       return res.sendStatus(403);
-//     }
-//     req.user = user;
-//     next();
-//   });
-// };
-
-// export default router;
+export default router;

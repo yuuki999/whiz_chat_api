@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import express from 'express';
-import { UserController } from '../../../controllers/UserController';
+import { UserController } from '../../../controllers/consumer/UserController';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../../../middleware/validateRequest';
 
