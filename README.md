@@ -2,6 +2,20 @@
 
 ## 起動
 
+dockerコンテナを構築
+```
+docker-compose up --build
+```
+
+コンテナを起動。
+```
+docker-compose up -d
+```
+
+これでAPIに疎通できる。
+
+### appコンテナの内部で色々操作したい場合。
+
 開発モード
 ```
 pnpm run dev
@@ -217,3 +231,15 @@ export class ValidationError extends AppError {
   "message": "User with id 123 not found"
 }
 ```
+
+
+## 便利コマンド
+
+
+```
+tree -I 'node_modules|dist|.git'
+```
+
+
+
+TODO: distを使うべきか否か？

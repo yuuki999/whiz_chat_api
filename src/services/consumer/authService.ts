@@ -44,6 +44,10 @@ export class ConsumerAuthService {
     // 仮の実装例：
 
     // TODO: これのAPIを実装するか。
+    // まずはDBでモックを作成したい。
+    // 1.マイグレーションツールの使用：データベーススキーマの変更を管理するために、db-migrateやsequelize-cliなどのマイグレーションツールを使用することをお勧めします。 db-migrateがいいかもしれない。
+    // 2.シードデータの準備：テスト用のデータを簡単に投入できるよう、シードスクリプトを用意しておくと便利です。
+    // 3.Docker Composeの活用：ローカル環境でPostgreSQLを簡単に起動できるよう、Docker Composeファイルを用意することをお勧めします。
     const existingUser = await this.findUserByEmail(consumerData.email);
     if (existingUser) {
       throw new Error('User already exists');

@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "es2016",
     "module": "commonjs",
-    "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -10,7 +9,9 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "outDir": "./dist" // distは使わないが、将来最適化したい時のために残しておく。
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "prisma"],
   "exclude": ["node_modules"]
 }

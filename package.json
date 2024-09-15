@@ -5,15 +5,17 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "node dist/app.js",
-    "dev": "nodemon src/app.ts",
+    "start": "ts-node src/app.ts",
+    "dev": "nodemon --exec ts-node src/app.ts",
     "build": "tsc -p .",
-    "tsoa": "tsoa spec"
+    "tsoa": "tsoa spec",
+    "prisma:generate": "prisma generate"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^5.19.1",
     "@tsoa/runtime": "^6.4.0",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
@@ -38,6 +40,7 @@
     "@types/swagger-ui-express": "^4.1.6",
     "jest": "^29.7.0",
     "nodemon": "^3.1.4",
+    "prisma": "^5.19.1",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
