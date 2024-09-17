@@ -1,6 +1,5 @@
 import { Post, Route, Tags, Body } from "tsoa";
 import { ConsumerAuthService } from '../../services/consumer/authService';
-import { AuthenticationException } from "../../exception/AuthenticationException";
 import { AuthResponse, LoginRequest, RefreshTokenRequest, RegisterRequest } from "../../types/auth";
 
 @Route("auth")

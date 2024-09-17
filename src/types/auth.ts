@@ -4,7 +4,8 @@ import { Prisma, User } from '@prisma/client'
 export type SafeUser = Omit<User, 'passwordHash' | 'isAdmin'>
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: SafeUser;
 }
 

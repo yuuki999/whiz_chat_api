@@ -4,6 +4,7 @@ import { body } from 'express-validator';
 import { validateRequest } from '../../../middleware/validateRequest';
 import { ConsumerAuthService } from '../../../services/consumer/authService';
 import { ConsumerAuthController } from '../../../controllers/consumer/ConsumerAuthController';
+import { lightFormat } from 'date-fns';
 
 const router = express.Router();
 const authService = new ConsumerAuthService();
@@ -34,7 +35,6 @@ router.post('/login',
   validateRequest,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, password } = req.body;
       const result = await authController.login(req.body);
       res.json(result);
     } catch (error) {
@@ -62,8 +62,7 @@ router.post('/refresh-token',
   validateRequest,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { refreshToken } = req.body;
-      const result = await authController.refreshToken(refreshToken);
+      const result = await authController.refreshToken(req.body);
       res.json(result);
     } catch (error) {
       next(error);
