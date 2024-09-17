@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import userRoutes from './user';
 import authRoutes from './auth';
+import { consumerAuthMiddleware } from '../../../middleware/consumerAuthMiddleware';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/health', (req: Request, res: Response) => {
 // 認証関連
 router.use('/auth', authRoutes);
 // ユーザープロフィール、設定
-router.use('/users', userRoutes);
+router.use('/users', consumerAuthMiddleware, userRoutes);
 
 // その他APIエンドポイント...
 

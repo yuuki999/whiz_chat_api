@@ -4,7 +4,7 @@ import { body } from 'express-validator';
 import { validateRequest } from '../../../middleware/validateRequest';
 import { ConsumerAuthService } from '../../../services/consumer/authService';
 import { ConsumerAuthController } from '../../../controllers/consumer/ConsumerAuthController';
-import { lightFormat } from 'date-fns';
+import { consumerAuthMiddleware } from '../../../middleware/consumerAuthMiddleware';
 
 const router = express.Router();
 const authService = new ConsumerAuthService();
