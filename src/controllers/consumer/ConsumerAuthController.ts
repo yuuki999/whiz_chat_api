@@ -14,22 +14,13 @@ export class ConsumerAuthController {
 
   @Post("login")
   async login(@Body() requestBody: LoginRequest): Promise<AuthResponse> {
-    try {
-      const { email, password } = requestBody;
-      return await this.authService.login(email, password);
-    } catch (error) {
-      throw new AuthenticationException("Invalid email or password");
-    }
+    const { email, password } = requestBody;
+    return await this.authService.login(email, password);
   }
 
   @Post("register")
   async register(@Body() requestBody: RegisterRequest): Promise<AuthResponse> {
-    try {
-      return await this.authService.register(requestBody);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new AuthenticationException(errorMessage);
-    }
+    return await this.authService.register(requestBody);
   }
 
   @Post("logout")
@@ -39,11 +30,7 @@ export class ConsumerAuthController {
 
   @Post("refresh-token")
   async refreshToken(@Body() requestBody: RefreshTokenRequest): Promise<AuthResponse> {
-    try {
-      const { refreshToken } = requestBody;
-      return await this.authService.refreshToken(refreshToken);
-    } catch (error) {
-      throw new AuthenticationException("Invalid refresh token");
-    }
+    const { refreshToken } = requestBody;
+    return await this.authService.refreshToken(refreshToken);
   }
 }

@@ -6,16 +6,20 @@ export const globalErrorHandler = (err: AppError | Error, req: Request, res: Res
   logger.error('エラー:', err);
 
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({
+    const responseBody: any = {
       statusCode: err.statusCode,
       errorCode: err.errorCode,
       message: err.message,
-    });
+    };
+
+    res.status(err.statusCode).json(responseBody);
   } else {
-    res.status(500).json({
+    const responseBody: any = {
       statusCode: 500,
       errorCode: 'UNKNOWN_SERVER_ERROR',
-      message: '予期せぬエラーが発生しました',
-    });
+      message: err.message || '予期せぬエラーが発生しました',
+    };
+
+    res.status(500).json(responseBody);
   }
 };

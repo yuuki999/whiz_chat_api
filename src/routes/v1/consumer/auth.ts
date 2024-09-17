@@ -11,6 +11,7 @@ const authController = new ConsumerAuthController(authService);
 
 router.post('/register',
   [
+    body('name').isString().notEmpty().withMessage('名前を指定してください'),
     body('email').isEmail().withMessage('有効なメールアドレスを指定してください'),
     body('password').isLength({ min: 8 }).withMessage('パスワードは8文字以上で指定してください'),
   ],

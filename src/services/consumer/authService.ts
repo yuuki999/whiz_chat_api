@@ -23,24 +23,32 @@ export class ConsumerAuthService {
   }
 
   async register(userData: { email: string; password: string; name: string }): Promise<AuthResponse> {
-    const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
-    if (existingUser) {
-      throw new BadRequestException('ユーザーが既に存在します');
-    }
-    const hashedPassword = await bcryptjs.hash(userData.password, 10);
-    const newUser = await prisma.user.create({
-      data: {
-        email: userData.email,
-        passwordHash: hashedPassword,
-        name: userData.name,
-        userId: `user_${Date.now()}`, // 一意のuserIdを生成
+    try {
+      const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
+      if (existingUser) {
+        throw new BadRequestException('ユーザーが既に存在します');
       }
-    });
-    const token = generateToken({ userId: newUser.id });
-    return {
-      token,
-      user: newUser
-    };
+      const hashedPassword = await bcryptjs.hash(userData.password, 10);
+      const newUser = await prisma.user.create({
+        data: {
+          email: userData.email,
+          passwordHash: hashedPassword,
+          name: userData.name,
+          userId: `user_${Date.now()}`,
+        }
+      });
+      const token = generateToken({ userId: newUser.id });
+      return {
+        token,
+        user: newUser
+      };
+
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
