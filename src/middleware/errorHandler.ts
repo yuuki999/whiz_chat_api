@@ -10,14 +10,12 @@ export const globalErrorHandler = (err: AppError | Error, req: Request, res: Res
       statusCode: err.statusCode,
       errorCode: err.errorCode,
       message: err.message,
-      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined // セキュリティリスク回避のため、本番環境ではスタックトレースを返さない
     });
   } else {
     res.status(500).json({
       statusCode: 500,
       errorCode: 'UNKNOWN_SERVER_ERROR',
       message: '予期せぬエラーが発生しました',
-      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined
     });
   }
 };

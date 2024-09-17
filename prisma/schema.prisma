@@ -4,7 +4,9 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // This happened because Prisma Client was generated for "darwin-arm64", but the actual deployment required "linux-musl-arm64-openssl-3.0.x".のエラー回避
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 model User {

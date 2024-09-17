@@ -13,7 +13,6 @@ services:
       DATABASE_URL: postgresql://user:password@db:5432/whiz_chat
     volumes:
       - ./:/app
-      - /app/node_modules
     command: pnpm run dev  # 開発モードで実行
 
   db:

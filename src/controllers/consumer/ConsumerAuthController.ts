@@ -1,30 +1,7 @@
 import { Post, Route, Tags, Body } from "tsoa";
 import { ConsumerAuthService } from '../../services/consumer/authService';
 import { AuthenticationException } from "../../exception/AuthenticationException";
-
-interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-interface RegisterRequest {
-  email: string;
-  password: string;
-  username: string;
-}
-
-interface AuthResponse {
-  token: string;
-  user: {
-    id: number;
-    email: string;
-    username: string;
-  }
-}
-
-interface RefreshTokenRequest {
-  refreshToken: string;
-}
+import { AuthResponse, LoginRequest, RefreshTokenRequest, RegisterRequest } from "../../types/auth";
 
 @Route("auth")
 @Tags("Authentication")
@@ -50,7 +27,8 @@ export class ConsumerAuthController {
     try {
       return await this.authService.register(requestBody);
     } catch (error) {
-      throw new AuthenticationException("Registration failed");
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new AuthenticationException(errorMessage);
     }
   }
 

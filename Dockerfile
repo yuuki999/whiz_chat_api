@@ -10,7 +10,11 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 ENV DATABASE_URL="postgresql://user:password@db:5432/mydb"
-RUN npx prisma generate
+# Prisma Clientを生成
+RUN pnpm prisma generate
+
+# TypeScriptをビルド
+RUN pnpm run build
 
 # 非root ユーザーを作成して切り替え
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

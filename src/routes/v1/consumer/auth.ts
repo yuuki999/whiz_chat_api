@@ -13,8 +13,6 @@ router.post('/register',
   [
     body('email').isEmail().withMessage('有効なメールアドレスを指定してください'),
     body('password').isLength({ min: 8 }).withMessage('パスワードは8文字以上で指定してください'),
-    body('name').isString().trim().notEmpty().withMessage('名前は空でない文字列を指定してください'),
-    body('age').optional().isInt({ min: 0 }).withMessage('年齢は0以上の整数を指定してください')
   ],
   validateRequest,
   async (req: Request, res: Response, next: NextFunction) => {

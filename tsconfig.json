@@ -3,6 +3,7 @@
     "target": "es2016",
     "module": "commonjs",
     "strict": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -10,6 +11,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "sourceMap": true,
+    "noErrorTruncation": true, // エディタで型の情報を省略表示しない。
     "outDir": "./dist" // distは使わないが、将来最適化したい時のために残しておく。
   },
   "include": ["src/**/*", "prisma"],

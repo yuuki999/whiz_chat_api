@@ -38,7 +38,9 @@ http://localhost:3000/api-docs/
 
 ## Prisma
 
-このプロジェクトではPrismaを使用してデータベースマイグレーションを管理しています。
+このプロジェクトではPrismaを使用してデータベースマイグレーションを管理しています。  
+公式ドキュメント  
+https://www.prisma.io/docs/orm/reference/prisma-schema-reference
 
 ### 1. モデルの作成・更新
 ```prisma/schema.prisma```ファイルを編集して、新しいモデルを追加するか既存のモデルを更新します。
@@ -79,6 +81,36 @@ npx prisma generate
 - クエリ API の更新
 スキーマの変更に応じて、新しいクエリメソッドや既存メソッドの引数を更新します。
 例えば、新しいモデルや関係性を追加した場合、それらに対応するクエリメソッドが生成されます。
+
+### prismaで生成される型の使用について
+
+下記のように使用することが可能。
+```
+import { Prisma, User } from '@prisma/client'
+
+// 完全なUser型
+type FullUser = User
+
+// User型から特定のフィールドを除外した型
+type UserWithoutSensitiveInfo = Omit<User, 'passwordHash' | 'isAdmin'>
+
+// 新規ユーザー作成時に使用する型
+type CreateUserInput = Prisma.UserCreateInput
+
+// ユーザー更新時に使用する型
+type UpdateUserInput = Prisma.UserUpdateInput
+
+// ユーザー検索時に使用する型
+type UserWhereInput = Prisma.UserWhereInput
+
+export {
+  FullUser,
+  UserWithoutSensitiveInfo,
+  CreateUserInput,
+  UpdateUserInput,
+  UserWhereInput
+}
+```
 
 ### トラブルシューティング
 マイグレーションに問題が発生した場合は、以下のコマンドでデータベースの状態を確認できます。
@@ -297,4 +329,12 @@ tree -I 'node_modules|dist|.git'
 ## TODO
 
 - Joi, Yupとはバリデーションライブラリだが何か。prismaとの関連性はあるか。
+- Prisma Studioの使い方
+- TypedSQL,生SQLに対して自動で型を付けてくれる機能があるらしいキャッチアップしておきたい
+- コードを書く時に、型推論を使用して明示的な型を表現をしないことも選択肢に入れる。
+
+
+これを使えばうまくいくかも
+install bcryptjs --save
+
 

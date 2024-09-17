@@ -1,42 +1,33 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { generateToken } from '../../utils/jwtUtils';
-import bcrypt from 'bcrypt';
+import * as bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { BadRequestException } from '../../exception/BadRequestException';
+import { AuthenticationException } from '../../exception/AuthenticationException';
+import { ResourceNotFoundException } from '../../exception/ResourceNotFoundException';
+import { AuthResponse  } from '../../types/auth';
 
 const prisma = new PrismaClient();
-
-interface AuthResponse {
-  token: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-  }
-}
 
 export class ConsumerAuthService {
   async login(email: string, password: string): Promise<AuthResponse> {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      throw new Error('Invalid email or password');
+    if (!user || !(await bcryptjs.compare(password, user.passwordHash))) {
+      throw new AuthenticationException('無効なメールアドレスまたはパスワードです');
     }
     const token = generateToken({ userId: user.id });
     return {
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name
-      }
+      user: user
     };
   }
 
   async register(userData: { email: string; password: string; name: string }): Promise<AuthResponse> {
     const existingUser = await prisma.user.findUnique({ where: { email: userData.email } });
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new BadRequestException('ユーザーが既に存在します');
     }
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const hashedPassword = await bcryptjs.hash(userData.password, 10);
     const newUser = await prisma.user.create({
       data: {
         email: userData.email,
@@ -48,11 +39,7 @@ export class ConsumerAuthService {
     const token = generateToken({ userId: newUser.id });
     return {
       token,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name
-      }
+      user: newUser
     };
   }
 
@@ -61,19 +48,18 @@ export class ConsumerAuthService {
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { userId: number };
       const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
       if (!user) {
-        throw new Error('User not found');
+        throw new ResourceNotFoundException('ユーザーが見つかりません');
       }
       const newToken = generateToken({ userId: user.id });
       return {
         token: newToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name
-        }
+        user: user
       };
     } catch (error) {
-      throw new Error('Invalid refresh token');
+      if (error instanceof ResourceNotFoundException) {
+        throw error;
+      }
+      throw new AuthenticationException('無効なリフレッシュトークンです');
     }
   }
 }
