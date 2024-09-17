@@ -2,9 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import express from 'express';
 import { body } from 'express-validator';
 import { validateRequest } from '../../../middleware/validateRequest';
-import { ConsumerAuthService } from '../../../services/consumer/authService';
 import { ConsumerAuthController } from '../../../controllers/consumer/ConsumerAuthController';
-import { consumerAuthMiddleware } from '../../../middleware/consumerAuthMiddleware';
+import { ConsumerAuthService } from '../../../services/consumer/AuthService';
 
 const router = express.Router();
 const authService = new ConsumerAuthService();
