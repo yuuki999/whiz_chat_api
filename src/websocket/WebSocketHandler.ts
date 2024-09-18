@@ -26,7 +26,6 @@ export default class WebSocketHandler {
         case 'SEND_MESSAGE':
           await this.handleSendMessage(data);
           break;
-        // 他のメッセージタイプの処理をここに追加
       }
     } catch (error) {
       console.error('Error handling message:', error);
@@ -34,17 +33,16 @@ export default class WebSocketHandler {
     }
   }
 
-  private async handleAuth(token: string) {
+  private async handleAuth(accessToken: string) {
     try {
-      const authResponse = await this.authService.refreshToken(token);
-      this.userId = authResponse.user.id;
+      const { user } = await this.authService.verifyAccessToken(accessToken);
+      this.userId = user.id;
       this.ws.send(JSON.stringify({ 
         type: 'AUTH_SUCCESS',
-        accessToken: authResponse.accessToken,
         user: {
-          id: authResponse.user.id,
-          name: authResponse.user.name,
-          email: authResponse.user.email
+          id: user.id,
+          name: user.name,
+          email: user.email
         }
       }));
     } catch (error) {
@@ -64,6 +62,7 @@ export default class WebSocketHandler {
     }
 
     try {
+      // メッセージを保存する
       const message = await this.messageService.sendMessage({
         senderId: this.userId,
         receiverId: data.receiverId,
@@ -80,7 +79,7 @@ export default class WebSocketHandler {
   }
 
   private broadcastMessage(message: any) {
-    // 実際の実装では、接続されている全クライアントから
+    // TODO: 実際の実装では、接続されている全クライアントから
     // 送信者と受信者を見つけて、それらにのみメッセージを送信します
     this.ws.send(JSON.stringify({
       type: 'NEW_MESSAGE',

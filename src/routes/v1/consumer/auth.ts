@@ -4,6 +4,9 @@ import { body } from 'express-validator';
 import { validateRequest } from '../../../middleware/validateRequest';
 import { ConsumerAuthController } from '../../../controllers/consumer/ConsumerAuthController';
 import { ConsumerAuthService } from '../../../services/consumer/AuthService';
+import { AuthenticationException } from '../../../exception/AuthenticationException';
+import { getErrorMessage } from '../../../utils/getErrorMessage';
+import { get } from 'http';
 
 const router = express.Router();
 const authService = new ConsumerAuthService();
@@ -68,5 +71,14 @@ router.post('/refresh-token',
     }
   }
 );
+
+router.post('/verify-access-token', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  try {
+    const result = await authController.verifyAccessToken(req);
+    res.json(result);
+  } catch (error) {
+      next(error);
+  }
+});
 
 export default router;

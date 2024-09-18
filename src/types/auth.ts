@@ -9,6 +9,10 @@ export interface AuthResponse {
   user: SafeUser;
 }
 
+export interface AuthVerifyResponse {
+  user: SafeUser;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;

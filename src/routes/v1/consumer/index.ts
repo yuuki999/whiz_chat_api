@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import userRoutes from './user';
 import authRoutes from './auth';
 import { consumerAuthMiddleware } from '../../../middleware/consumerAuthMiddleware';
+import websocketTestRoutes from './websocket-test';
 
 const router = express.Router();
 
@@ -14,7 +15,10 @@ router.get('/health', (req: Request, res: Response) => {
 router.use('/auth', authRoutes);
 // ユーザープロフィール、設定
 router.use('/users', consumerAuthMiddleware, userRoutes);
-
-// その他APIエンドポイント...
+// 開発環境でのみWebSocketテストルートを追加
+if (process.env.NODE_ENV === 'development') {
+  const websocketTestRoutes = require('./websocket-test').default;
+  router.use('/websocket-test', websocketTestRoutes);
+}
 
 export default router;

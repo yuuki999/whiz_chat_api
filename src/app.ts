@@ -11,17 +11,17 @@ import WebSocketServer from './websocket/WebSocketServer';
 
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
-
-// WebSocketサーバーの初期化
 const server = http.createServer(app);
-new WebSocketServer(server);
+const port = process.env.PORT || 3000;
+// WebSocket接続ハンドラー
+const wss = new WebSocketServer(server);
 
 // SwaggerUIの設定
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJson));
 // CORSの設定
 app.use(cors({
-  origin: 'http://localhost:3000', // 指定されたoriginのみ許可、 '*' で全てのoriginを許可 TODO: Flutterと管理画面と自分自身のみ許可したい。
+  // origin: 'http://localhost:3000', // 指定されたoriginのみ許可、 '*' で全てのoriginを許可 TODO: Flutterと管理画面と自分自身のみ許可したい。
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -39,6 +39,6 @@ app.use('/api', apiRouter);
 app.use(globalErrorHandler);
 
 // サーバー起動設定
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+server.listen(port, () => {
+  console.log(`HTTP and WebSocket server is running at http://localhost:${port}`);
 });

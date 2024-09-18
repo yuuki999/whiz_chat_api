@@ -4,8 +4,9 @@ import * as bcryptjs from 'bcryptjs';
 import { BadRequestException } from '../../exception/BadRequestException';
 import { AuthenticationException } from '../../exception/AuthenticationException';
 import { ResourceNotFoundException } from '../../exception/ResourceNotFoundException';
-import { AuthResponse } from '../../types/auth';
+import { AuthResponse, AuthVerifyResponse } from '../../types/auth';
 import { getErrorMessage } from '../../utils/getErrorMessage';
+import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
@@ -56,7 +57,6 @@ export class ConsumerAuthService {
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
     try {
-      console.log(refreshToken)
       const decoded = verifyRefreshToken(refreshToken) as { userId: number };
       const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
       if (!user) {
@@ -73,6 +73,25 @@ export class ConsumerAuthService {
       if (error instanceof ResourceNotFoundException) {
         throw error;
       }
+      throw new AuthenticationException(getErrorMessage(error));
+    }
+  }
+
+  public async verifyAccessToken(accessToken: string): Promise<AuthVerifyResponse> {
+    try {
+      // アクセストークンの検証とユーザー情報の取得
+      const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET!) as jwt.JwtPayload;
+      const userId = decodedToken.userId;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new AuthenticationException('User not found');
+      }
+
+      return { user };
+    } catch (error) {
       throw new AuthenticationException(getErrorMessage(error));
     }
   }
