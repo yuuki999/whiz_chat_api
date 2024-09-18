@@ -118,6 +118,51 @@ export {
 npx prisma migrate status
 ```
 
+## Supbaseについて
+
+リアルタイムデータベースを活用にsupabaseを利用する。
+
+プロジェクトのディレクトリに移動してsupabaseを構築する。
+```
+cd whiz_chat_backend
+pnpm install supabase --save-dev
+```
+
+supabaseの初期化
+```
+pnpm run supabase init
+```
+
+supabaseの起動
+```
+pnpm run supabase start
+```
+
+supabaseでのマイグレーションファイルの作成
+```
+pnpm run supabase migration new <migration-name>
+```
+
+マイグレーションの適用
+```
+pnpm run supabase db reset
+```
+
+テーブルのリアルタイム機能になっているか確認するコマンド
+```
+SELECT pc.relname AS table_name,
+       CASE pc.relreplident
+         WHEN 'd' THEN 'DEFAULT'
+         WHEN 'n' THEN 'NOTHING'
+         WHEN 'f' THEN 'FULL'
+         WHEN 'i' THEN 'INDEX'
+       END AS replica_identity
+FROM pg_class pc
+JOIN pg_namespace pn ON pn.oid = pc.relnamespace
+WHERE pc.relname = 'messages'
+  AND pn.nspname = 'public';
+```
+relreplidentの列がFULLになっていれば設定完了
 
 ## API設計とドキュメント生成
 
