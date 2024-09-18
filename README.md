@@ -314,7 +314,135 @@ export class ValidationError extends AppError {
 }
 ```
 
+## Jestを使用した自動テスト
 
+自動テストにJestを使用しています。以下に、テストの実行方法とテスト作成のガイドラインを示します。
+
+### テストの実行方法
+
+1. 全てのテストを実行
+
+    ```
+    pnpm test
+    ```
+1. カバレッジレポート付きでテストを実行
+
+    ```
+    pnpm test -- --coverage
+    ```
+1. 特定のファイルまたはディレクトリのテストを実行
+
+    ```
+    pnpm test path/to/test-file.test.ts
+    pnpm test path/to/directory
+    ```
+1. テスト名やパターンに基づいてテストを実行
+
+    ```
+    pnpm test -t "test name pattern"
+    ```
+1. 監視モードでテストを実行（ファイルの変更を検知して自動的にテストを再実行）
+
+    ```
+    pnpm test -- --watch
+    ```
+1. 失敗したテストのみを再実行
+
+    ```
+    pnpm test -- --onlyFailures
+    ```
+1. カバレッジレポートを生成し、HTMLレポートを開く
+
+    ```
+    pnpm test -- --coverage --coverageReporters="html" && open coverage/index.html
+    ```
+
+
+## テストの作成方法
+- テストファイルは、テスト対象のファイルと同じディレクトリに配置し、`*.test.ts`という名前を付けてください。
+- テスト名は、期待される動作を説明する分かりやすいものにしてください。
+- テストでは、Arrange-Act-Assert（AAA）パターンに従ってください。 これ何？
+- 外部依存関係はモック化し、テスト対象のユニットを分離してください。　これ何？
+
+## テスト戦略
+- テストカバレッジは約80%を目指します。信頼性と開発速度のバランスを考慮した数字です。
+- コアとなるビジネスロジックや複雑な関数のテストに重点を置いてください。
+- 個々の関数やクラスには単体テストを使用してください。
+- システムの異なる部分の相互作用をテストするには、結合テストを実装してください。
+- 重要なユーザーフローに対してはエンドツーエンドテストを作成してください。
+
+## ベストプラクティス
+- テストはシンプルで、単一の動作にフォーカスしたものにしてください。
+- セットアップとクリーンアップには`beforeEach`や`afterEach`関数を使用し、重複を避けてください。
+- 実装の詳細をテストするのではなく、モジュールの公開APIをテストすることに集中してください。
+- 定期的にテストを実行し、コードベースの進化に合わせてテストを最新の状態に保ってください。
+
+テストは開発プロセスの重要な部分です。バグの早期発見、ドキュメントとしての役割、リファクタリングの容易化に役立ちます。新機能やバグ修正には必ずテストを書くようにしましょう。
+
+## テストの種類
+- 単体テスト：個々の関数やクラスの動作を独立してテストします。例：`WebSocketHandler.test.ts`
+- 結合テスト：複数のコンポーネントの相互作用をテストします。例：`WebSocketHandler`と`MessageService`の連携
+- エンドツーエンドテスト：ユーザーの視点から見た全体的な機能をテストします。
+
+## テストカバレッジについて
+80%程度のカバレッジを目標としています。これには以下の理由があります：
+1. 重要なビジネスロジックをカバーするのに十分な高さです。
+2. 完璧を求めすぎないため、開発速度を維持できます。
+3. エッジケースや稀なシナリオに過度にリソースを割くことを避けられます。
+
+ただし、カバレッジの数字だけでなく、テストの質も重要です。クリティカルなパスや複雑なロジックには特に注意を払い、それらが確実にテストされているようにしましょう。
+
+## テストのTODO
+
+GitHub Actionsを使用して、プルリクエストやプッシュ時に自動的にテストを実行し、  
+カバレッジが特定の閾値を下回った場合にデプロイを防ぎたい。
+以下に、そのための```.github/workflows/test-and-deploy.yml```ファイルの草案を考えた。
+
+```yaml
+name: Test and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    - run: pnpm install
+    - name: Run tests and check coverage
+      run: |
+        pnpm test -- --coverage
+        COVERAGE=$(pnpm jest --coverage --coverageReporters="json-summary" | jq '.total.lines.pct')
+        echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+          echo "Coverage is below 80%. Failing the build."
+          exit 1
+        fi
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy
+      run: |
+        # ここにデプロイのスクリプトを記述
+        echo "Deploying..."
+```
+
+このワークフローは以下のことを行います  
+- プッシュまたはプルリクエスト時にテストを実行します。
+- テストカバレッジを計算し、80%未満の場合はビルドを失敗させます。
+- メインブランチへのプッシュで、テストが成功した場合のみデプロイを実行します。
 
 
 ## 便利コマンド

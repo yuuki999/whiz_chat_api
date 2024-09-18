@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": ["src/*"]
+    },
     "target": "es2016",
     "module": "commonjs",
     "strict": true,
@@ -11,9 +15,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "sourceMap": true,
+    "moduleResolution": "node",
     "noErrorTruncation": true, // エディタで型の情報を省略表示しない。
     "outDir": "./dist" // distは使わないが、将来最適化したい時のために残しておく。
   },
-  "include": ["src/**/*", "prisma"],
+  "include": ["src/**/*", "prisma", "__tests__/**/*"],
   "exclude": ["node_modules"]
 }
