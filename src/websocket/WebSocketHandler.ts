@@ -3,6 +3,7 @@ import { MessageService } from '../services/consumer/MessageService';
 import { AuthenticationException } from '../exception/AuthenticationException';
 import { ConsumerAuthService } from '../services/consumer/AuthService';
 
+// チャット機能が必要なのでwebsocketを検証してみたけど、リアルタイムデータベース＋FCMの方が良さそう。念の為残しておく。
 export default class WebSocketHandler {
   private ws: WebSocket;
   private userId: number | null = null;
@@ -93,3 +94,141 @@ export default class WebSocketHandler {
     this.userId = null;
   }
 }
+
+
+// 実装のメモ、websocketとFCMの併用
+// // クライアント側
+// import * as WebSocket from 'ws';
+// import firebase from 'firebase/app';
+// import 'firebase/messaging';
+
+// class ChatClient {
+//   private ws: WebSocket | null = null;
+//   private fcmToken: string | null = null;
+
+//   constructor() {
+//     this.initializeFCM();
+//   }
+
+//   private async initializeFCM() {
+//     const messaging = firebase.messaging();
+//     try {
+//       this.fcmToken = await messaging.getToken();
+//       console.log('FCMトークン:', this.fcmToken);
+//       // FCMトークンをサーバーに送信
+//       this.sendFCMTokenToServer(this.fcmToken);
+//     } catch (error) {
+//       console.error('FCMトークンの取得に失敗:', error);
+//     }
+//   }
+
+//   public openWebSocketConnection() {
+//     this.ws = new WebSocket('wss://your-server-url');
+//     this.ws.onopen = () => {
+//       console.log('WebSocket接続が確立されました');
+//     };
+//     this.ws.onmessage = (event) => {
+//       console.log('メッセージを受信:', event.data);
+//       // 受信したメッセージを処理
+//     };
+//     this.ws.onclose = () => {
+//       console.log('WebSocket接続が閉じられました');
+//     };
+//   }
+
+//   public closeWebSocketConnection() {
+//     if (this.ws) {
+//       this.ws.close();
+//       this.ws = null;
+//     }
+//   }
+
+//   private sendFCMTokenToServer(token: string) {
+//     // FCMトークンをサーバーに送信するロジック
+//   }
+// }
+
+// // アプリケーションの状態に応じて接続を管理
+// const chatClient = new ChatClient();
+
+// // トーク画面を開いたとき
+// function onEnterChatScreen() {
+//   chatClient.openWebSocketConnection();
+// }
+
+// // トーク画面を閉じたとき
+// function onLeaveChatScreen() {
+//   chatClient.closeWebSocketConnection();
+// }
+
+// // サーバー側
+// import * as WebSocket from 'ws';
+// import * as admin from 'firebase-admin';
+
+// class ChatServer {
+//   private wss: WebSocket.Server;
+
+//   constructor() {
+//     this.wss = new WebSocket.Server({ port: 8080 });
+//     this.initializeWebSocket();
+//     this.initializeFCM();
+//   }
+
+//   private initializeWebSocket() {
+//     this.wss.on('connection', (ws) => {
+//       console.log('新しいWebSocket接続');
+//       ws.on('message', (message) => {
+//         console.log('メッセージを受信:', message);
+//         // メッセージを処理して、必要に応じて他のクライアントに送信
+//       });
+//     });
+//   }
+
+//   private initializeFCM() {
+//     admin.initializeApp({
+//       credential: admin.credential.applicationDefault(),
+//       // その他の設定
+//     });
+//   }
+
+//   public sendMessage(userId: string, message: string) {
+//     const activeClient = this.findActiveWebSocketClient(userId);
+//     if (activeClient) {
+//       // WebSocket経由でメッセージを送信
+//       activeClient.send(JSON.stringify(message));
+//     } else {
+//       // FCM経由でプッシュ通知を送信
+//       this.sendPushNotification(userId, message);
+//     }
+//   }
+
+//   private findActiveWebSocketClient(userId: string): WebSocket | null {
+//     // ユーザーIDに基づいてアクティブなWebSocketクライアントを探す
+//     // 実際の実装では、接続時にユーザーIDを関連付ける必要があります
+//     return null;
+//   }
+
+//   private async sendPushNotification(userId: string, message: string) {
+//     try {
+//       const token = await this.getFCMTokenForUser(userId);
+//       const response = await admin.messaging().send({
+//         token: token,
+//         notification: {
+//           title: '新しいメッセージ',
+//           body: message
+//         }
+//       });
+//       console.log('プッシュ通知送信成功:', response);
+//     } catch (error) {
+//       console.error('プッシュ通知送信エラー:', error);
+//     }
+//   }
+
+//   private async getFCMTokenForUser(userId: string): Promise<string> {
+//     // ユーザーIDに基づいてFCMトークンを取得する
+//     // 実際の実装では、データベースからトークンを取得する必要があります
+//     return 'dummy-fcm-token';
+//   }
+// }
+
+// const chatServer = new ChatServer();
